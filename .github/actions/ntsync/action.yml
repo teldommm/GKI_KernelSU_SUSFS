@@ -4,12 +4,11 @@ description: NT synchronization primitives for Wine/Proton
 runs:
   using: composite
   steps:
-    - name: Download ntsync.c
+    - name: Copy ntsync.c
       shell: bash
       run: |
-        curl -fsSL \
-          "https://raw.githubusercontent.com/torvalds/linux/master/drivers/misc/ntsync.c" \
-          -o "$GITHUB_WORKSPACE/kernel/common/drivers/misc/ntsync.c"
+        cp "$GITHUB_WORKSPACE/.github/actions/ntsync/ntsync.c" \
+           "$GITHUB_WORKSPACE/kernel/common/drivers/misc/ntsync.c"
 
     - name: Download ntsync.h
       shell: bash
