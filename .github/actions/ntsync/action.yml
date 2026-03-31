@@ -23,14 +23,7 @@ runs:
       working-directory: ${{ github.workspace }}/kernel/common/drivers/misc
       run: |
         if ! grep -q "NTSYNC" Kconfig; then
-          cat >> Kconfig << 'EOF'
-
-config NTSYNC
-    tristate "NT synchronization primitive emulation"
-    help
-      Kernel support for emulation of NT synchronization primitives.
-      Required for Wine and Proton.
-EOF
+          printf '\nconfig NTSYNC\n\ttristate "NT synchronization primitive emulation"\n\thelp\n\t  Kernel support for emulation of NT synchronization primitives.\n\t  Required for Wine and Proton.\n' >> Kconfig
         fi
 
     - name: Register in Makefile
