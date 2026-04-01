@@ -10,12 +10,19 @@ runs:
         cp "$GITHUB_WORKSPACE/.github/actions/ntsync/ntsync.c" \
            "$GITHUB_WORKSPACE/kernel/common/drivers/misc/ntsync.c"
 
-    - name: Download ntsync.h
+    - name: Copy ntsync.h
       shell: bash
       run: |
-        curl -fsSL \
-          "https://raw.githubusercontent.com/torvalds/linux/master/include/uapi/linux/ntsync.h" \
-          -o "$GITHUB_WORKSPACE/kernel/common/include/uapi/linux/ntsync.h"
+        if [ -f "$GITHUB_WORKSPACE/.github/actions/ntsync/ntsync.h" ]; then
+          echo "Using local ntsync.h"
+          cp "$GITHUB_WORKSPACE/.github/actions/ntsync/ntsync.h" \
+             "$GITHUB_WORKSPACE/kernel/common/include/uapi/linux/ntsync.h"
+        else
+          echo "Local ntsync.h not found, downloading from torvalds/linux"
+          curl -fsSL \
+            "https://raw.githubusercontent.com/torvalds/linux/master/include/uapi/linux/ntsync.h" \
+            -o "$GITHUB_WORKSPACE/kernel/common/include/uapi/linux/ntsync.h"
+        fi
 
     - name: Register in Kconfig
       shell: bash
