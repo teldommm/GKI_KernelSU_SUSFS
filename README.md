@@ -1,10 +1,7 @@
 <div align="center">
 
-#wild gki kernels with support ntsync for android emulation
+###Wild gki kernels with support ntsync for android emulation.
+Created only for own usage, I am not responsible for your devices.
 
----
-
-## 🚨 Proceed at your own risk!
-
-all credits:
+all credits: to TheWildJames
 - Patreon: <https://patreon.com/WildKernels>
