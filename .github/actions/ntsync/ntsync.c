@@ -29,62 +29,6 @@ enum ntsync_type {
 	NTSYNC_TYPE_EVENT,
 };
 
-#ifdef MODULE
-#include <linux/sched/debug.h>
-/**
- * schedule_hrtimeout_range_clock - sleep until timeout
- * @expires:	timeout value (ktime_t)
- * @delta:	slack in expires timeout (ktime_t) for SCHED_OTHER tasks
- * @mode:	timer mode
- * @clock_id:	timer clock to be used
- */
-static int __sched _schedule_hrtimeout_range_clock(ktime_t *expires, u64 delta,
-			       const enum hrtimer_mode mode, clockid_t clock_id)
-{
-	struct hrtimer_sleeper t;
-
-	/*
-	 * Optimize when a zero timeout value is given. It does not
-	 * matter whether this is an absolute or a relative time.
-	 */
-	if (expires && *expires == 0) {
-		__set_current_state(TASK_RUNNING);
-		return 0;
-	}
-
-	/*
-	 * A NULL parameter means "infinite"
-	 */
-	if (!expires) {
-		schedule();
-		return -EINTR;
-	}
-
-	/*
-	 * Override any slack passed by the user if under
-	 * rt contraints.
-	 */
-	if (rt_task(current))
-		delta = 0;
-
-	hrtimer_init_sleeper_on_stack(&t, clock_id, mode);
-	hrtimer_set_expires_range_ns(&t.timer, *expires, delta);
-	hrtimer_sleeper_start_expires(&t, mode);
-
-	if (likely(t.task))
-		schedule();
-
-	hrtimer_cancel(&t.timer);
-	destroy_hrtimer_on_stack(&t.timer);
-
-	__set_current_state(TASK_RUNNING);
-
-	return !t.task ? 0 : -EINTR;
-}
-#else
-#define _schedule_hrtimeout_range_clock schedule_hrtimeout_range_clock
-#endif
-
 /*
  * Individual synchronization primitives are represented by
  * struct ntsync_obj, and each primitive is backed by a file.
@@ -754,7 +698,6 @@ static const struct file_operations ntsync_obj_fops = {
 	.release	= ntsync_obj_release,
 	.unlocked_ioctl	= ntsync_obj_ioctl,
 	.compat_ioctl	= compat_ptr_ioctl,
-	.llseek		= no_llseek,
 };
 
 static struct ntsync_obj *ntsync_alloc_obj(struct ntsync_device *dev,
@@ -791,7 +734,6 @@ static int ntsync_obj_get_fd(struct ntsync_obj *obj)
 	}
 	obj->file = file;
 	fd_install(fd, file);
-
 	return fd;
 }
 
@@ -914,7 +856,7 @@ static int ntsync_schedule(const struct ntsync_q *q, const struct ntsync_wait_ar
 			ret = 0;
 			break;
 		}
-		ret = _schedule_hrtimeout_range_clock(timeout_ptr, 0, HRTIMER_MODE_ABS, clock);
+		ret = schedule_hrtimeout_range_clock(timeout_ptr, 0, HRTIMER_MODE_ABS, clock);
 	} while (ret < 0);
 	__set_current_state(TASK_RUNNING);
 
@@ -1259,7 +1201,6 @@ static const struct file_operations ntsync_fops = {
 	.release	= ntsync_char_release,
 	.unlocked_ioctl	= ntsync_char_ioctl,
 	.compat_ioctl	= compat_ptr_ioctl,
-	.llseek		= no_llseek,
 };
 
 static struct miscdevice ntsync_misc = {
