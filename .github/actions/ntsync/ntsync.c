@@ -734,6 +734,7 @@ static int ntsync_obj_get_fd(struct ntsync_obj *obj)
 	}
 	obj->file = file;
 	fd_install(fd, file);
+
 	return fd;
 }
 
